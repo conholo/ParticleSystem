@@ -20,7 +20,7 @@ namespace Engine
 
 	Shader::~Shader()
 	{
-		glDeleteShader(m_ID);
+		glDeleteProgram(m_ID);
 	}
 
 	void Shader::Bind() const
@@ -262,45 +262,6 @@ namespace Engine
 		GLint location = GetUniformLocation(name);
 		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 		return location;
-	}
-	
-
-	std::unordered_map<std::string, Shader*> ShaderLibrary::s_ShaderLibrary;
-
-	void ShaderLibrary::Add(Shader* shader)
-	{
-		if (s_ShaderLibrary.find(shader->GetName()) == s_ShaderLibrary.end())
-		{
-			s_ShaderLibrary[shader->GetName()] = shader;
-			LOG_TRACE("Added {} Shader to the Shader Library.", shader->GetName());
-		}
-		else
-		{
-			LOG_WARN("Shader already contained in Shader Library.  Attempted to add {} Shader to Library.", shader->GetName());
-		}
-	}
-
-	void ShaderLibrary::Load(const std::string& filePath)
-	{
-		Shader* shader = new Shader(filePath);
-		Add(shader);
-	}
-
-	const Shader* ShaderLibrary::Get(const std::string& name)
-	{
-		if (s_ShaderLibrary.find(name) == s_ShaderLibrary.end())
-		{
-			LOG_ERROR("No shader with name \"{}\" found in Shader Library.", name);
-			return nullptr;
-		}
-
-		return s_ShaderLibrary.at(name);
-	}
-
-	void ShaderLibrary::Free()
-	{
-		for (auto shaderEntry : s_ShaderLibrary)
-			delete(shaderEntry.second);
 	}
 }
 

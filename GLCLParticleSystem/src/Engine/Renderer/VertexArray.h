@@ -2,6 +2,7 @@
 
 #include "Engine/Renderer/VertexBuffer.h"
 #include "Engine/Renderer/IndexBuffer.h"
+#include "Engine/Renderer/BufferLayout.h"
 
 namespace Engine
 {
@@ -17,9 +18,11 @@ namespace Engine
 		void ClearIndexBuffer() { m_IndexBuffer = nullptr; }
 		void SetIndexBuffer(IndexBuffer* indexBuffer);
 		IndexBuffer* GetIndexBuffer() const { return m_IndexBuffer; }
-		void EnableVertexAttributes(VertexBuffer* vertexBuffer);
+		void AddVertexArray(VertexBuffer* vertexBuffer);
+		void EnableVertexAttributes();
 
 	private:
+		std::vector<VertexBuffer*> m_VBOs;
 		IndexBuffer* m_IndexBuffer;
 		uint32_t m_ID;
 	};

@@ -16,8 +16,13 @@ namespace Engine
 		~OpenCLProgram();
 
 		void AddKernel(const std::string& kernelName, const std::initializer_list<KernelArg*>& args);
+		void AddKernel(OpenCLKernel* kernel);
 		void AddBuffer(const std::string& bufferName, size_t bufferSize, CLBufferType bufferType);
+		void AddBuffer(OpenCLBuffer* buffer);
 		void ReadDeviceBufferToHostBuffer(const std::string& bufferName, size_t hostBufferSize, void* destinationBuffer);
+		void EnqueueAcquireGLObjects(const std::string& deviceBufferName);
+		void EnqueueReleaseGLObjects(const std::string& deviceBufferName);
+		void Flush();
 
 		void WriteToDeviceBufferFromHostBuffer(const std::string& deviceBufferName, size_t hostBufferSize, void* hostBuffer);
 

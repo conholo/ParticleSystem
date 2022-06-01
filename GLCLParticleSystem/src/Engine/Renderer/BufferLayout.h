@@ -7,6 +7,12 @@
 
 namespace Engine
 {
+
+	enum class BufferHint
+	{
+		None, ReadOnly, WriteOnly, ReadWrite
+	};
+
 	enum class ShaderDataType
 	{
 		None = 0, Float, Float2, Float3, Float4, Int, Mat3, Mat4, Sampler2D

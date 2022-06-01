@@ -1,6 +1,8 @@
 #include "glclpch.h"
 #include "Engine/Compute/OpenCLProgram.h"
 #include "Engine/Compute/OpenCLContext.h"
+#include <OpenCL/cl_gl.h>
+#include <OpenCL/cl_gl_ext.h>
 
 
 namespace Engine
@@ -28,8 +30,7 @@ namespace Engine
 		cl_int status;
 
 		m_ID = clCreateProgramWithSource(OpenCLContext::GetContext(), 1, (const char**)strings, NULL, &status);
-		if (status != CL_SUCCESS)
-			LOG_ERROR("clCreateProgramWithSource failed");
+		OpenCLContext::PrintCLError(status, "clCreateProgramWithSource failed");
 		delete[] clProgramText;
 
 		char* options = { "" };
@@ -47,10 +48,7 @@ namespace Engine
 
 
 		m_CommandQueue = clCreateCommandQueue(OpenCLContext::GetContext(), OpenCLContext::GetDevice(), 0, &status);
-		if (status != CL_SUCCESS)
-			LOG_ERROR("clCreateCommandQueue failed");
-
-		OpenCLContext::Wait(m_CommandQueue);
+		OpenCLContext::PrintCLError(status, "clCreateCommandQueue failed");
 	}
 
 	OpenCLProgram::~OpenCLProgram()
@@ -64,7 +62,7 @@ namespace Engine
 
 	void OpenCLProgram::AddKernel(const std::string& kernelName, const std::initializer_list<KernelArg*>& args)
 	{
-		if (m_Kernels.find(kernelName) != m_Kernels.end())
+		if (OpenCLContext::GetShouldLogDebug() && m_Kernels.find(kernelName) != m_Kernels.end())
 		{
 			LOG_ERROR("Kernel with name: '{}' already exists in OpenCL Program.", kernelName);
 			return;
@@ -72,9 +70,20 @@ namespace Engine
 		m_Kernels[kernelName] = new OpenCLKernel(this, kernelName, args);
 	}
 
+	void OpenCLProgram::AddKernel(OpenCLKernel* kernel)
+	{
+		if (OpenCLContext::GetShouldLogDebug() && m_Kernels.find(kernel->GetKernelName()) != m_Kernels.end())
+		{
+			LOG_ERROR("Kernel with name: '{}' already exists in OpenCL Program.", kernel->GetKernelName());
+			return;
+		}
+
+		m_Kernels[kernel->GetKernelName()] = kernel;
+	}
+
 	void OpenCLProgram::Execute(const std::string& kernelName, glm::ivec3& globalWorkSize, const glm::vec3& localWorkSize, uint32_t eventsInWaitListCount)
 	{
-		if (m_Kernels.find(kernelName) == m_Kernels.end())
+		if (OpenCLContext::GetShouldLogDebug() && m_Kernels.find(kernelName) == m_Kernels.end())
 		{
 			LOG_ERROR("Unable to Execute CLProgram.  No kernel with name: {} found.", kernelName);
 			return;
@@ -87,12 +96,13 @@ namespace Engine
 
 		std::chrono::duration<double> elapsed;
 		auto start = std::chrono::high_resolution_clock::now();
-		cl_int status = clEnqueueNDRangeKernel(m_CommandQueue, kernel->GetID(), 1, NULL, globalWorkSizes, lobalWorkSizes, eventsInWaitListCount, NULL, NULL);
-		OpenCLContext::Wait(m_CommandQueue);
+		cl_event wait;
+		cl_int status = clEnqueueNDRangeKernel(m_CommandQueue, kernel->GetID(), 1, NULL, globalWorkSizes, lobalWorkSizes, 0, NULL, &wait);
 		auto end = std::chrono::high_resolution_clock::now();
 		elapsed = end - start;
 
-		LOG_INFO("KERNEL: '{}' Execution Time: {}", kernelName, elapsed.count());
+		if (OpenCLContext::GetShouldLogDebug())
+			LOG_INFO("KERNEL: '{}' Execution Time: {}", kernelName, elapsed.count());
 	}
 
 	OpenCLBuffer* OpenCLProgram::GetBuffer(const std::string& bufferName)
@@ -114,7 +124,17 @@ namespace Engine
 			return;
 		}
 		m_Buffers[bufferName] = new OpenCLBuffer(this, bufferName, bufferSize, bufferType);
-		OpenCLContext::Wait(m_CommandQueue);
+	}
+
+	void OpenCLProgram::AddBuffer(OpenCLBuffer* buffer)
+	{
+		if (m_Buffers.find(buffer->GetBufferName()) != m_Buffers.end())
+		{
+			LOG_ERROR("Buffer with name: '{}' already exists in OpenCL Program.", buffer->GetBufferName());
+			return;
+		}
+
+		m_Buffers[buffer->GetBufferName()] = buffer;
 	}
 
 	void OpenCLProgram::ReadDeviceBufferToHostBuffer(const std::string& bufferName, size_t hostBufferSize, void* destinationBuffer)
@@ -139,9 +159,50 @@ namespace Engine
 		}
 
 		cl_int status = clEnqueueReadBuffer(m_CommandQueue, buffer->GetBufferID(), CL_TRUE, 0, buffer->GetBufferSize(), destinationBuffer, 0, NULL, NULL);
-		if (status != CL_SUCCESS)
-			LOG_ERROR("clEnqueueReadBuffer failed");
-		OpenCLContext::Wait(m_CommandQueue);
+		OpenCLContext::PrintCLError(status, "clEnqueueReadBuffer failed");
+	}
+
+	void OpenCLProgram::EnqueueAcquireGLObjects(const std::string& deviceBufferName)
+	{
+		OpenCLBuffer* deviceBuffer = GetBuffer(deviceBufferName);
+		if (deviceBuffer == nullptr)
+		{
+			LOG_ERROR("Could not EnqueueAquireGLObjects with device buffer named: {} - buffer not found", deviceBufferName);
+			return;
+		}
+		if (!deviceBuffer->IsAttachedToGLBuffer())
+		{
+			LOG_ERROR("Could not EnqueueAquireGLObjects with device buffer named: {} because this buffer is not associated with a GL buffer.", deviceBufferName);
+			return;
+		}
+
+		cl_mem id = deviceBuffer->GetBufferID();
+		cl_int status = clEnqueueAcquireGLObjects(m_CommandQueue, 1, &id, 0, NULL, NULL);
+		OpenCLContext::PrintCLError(status, "clEnqueueAcquireGLObjects failed");
+	}
+
+	void OpenCLProgram::EnqueueReleaseGLObjects(const std::string& deviceBufferName)
+	{
+		OpenCLBuffer* deviceBuffer = GetBuffer(deviceBufferName);
+		if (deviceBuffer == nullptr)
+		{
+			LOG_ERROR("Could not EnqueueReleaseGLObjects with device buffer named: {} - buffer not found.", deviceBufferName);
+			return;
+		}
+		if (!deviceBuffer->IsAttachedToGLBuffer())
+		{
+			LOG_ERROR("Could not EnqueueReleaseGLObjects with device buffer named: {} because this buffer is not associated with a GL buffer.", deviceBufferName);
+			return;
+		}
+
+		cl_mem id = deviceBuffer->GetBufferID();
+		cl_int status = clEnqueueReleaseGLObjects(m_CommandQueue, 1, &id, 0, NULL, NULL);
+		OpenCLContext::PrintCLError(status, "clEnqueueReleaseGLObjects failed");
+	}
+
+	void OpenCLProgram::Flush()
+	{
+		clFinish(m_CommandQueue);
 	}
 
 	void OpenCLProgram::WriteToDeviceBufferFromHostBuffer(const std::string& deviceBufferName, size_t hostBufferSize, void* hostBuffer)
@@ -157,7 +218,5 @@ namespace Engine
 		cl_int status = clEnqueueWriteBuffer(m_CommandQueue, buffer->GetBufferID(), CL_FALSE, 0, hostBufferSize, hostBuffer, 0, NULL, NULL);
 		if (status != CL_SUCCESS)
 			LOG_ERROR("clEnqueueWriteBuffer failed (1)");
-
-		OpenCLContext::Wait(m_CommandQueue);
 	}
 }

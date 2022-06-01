@@ -46,18 +46,4 @@ namespace Engine
 		uint32_t m_ID;
 		bool m_IsCompute = false;
 	};
-
-
-	class ShaderLibrary
-	{
-	public:
-		static const Shader* Get(const std::string& name);
-
-		static void Add(Shader* shader);
-		static void Load(const std::string& filePath);
-		static void Free();
-
-	private:
-		static std::unordered_map<std::string, Shader*> s_ShaderLibrary;
-	};
 }

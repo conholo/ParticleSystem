@@ -26,6 +26,7 @@ namespace Engine
 		OpenCLKernel(OpenCLProgram* program, const std::string& kernelName, const std::initializer_list<KernelArg*>& args);
 		~OpenCLKernel();
 
+		const std::string& GetKernelName() const { return m_KernelName; }
 		cl_kernel GetID() const { return m_KernelID; }
 		void AttachArgs();
 

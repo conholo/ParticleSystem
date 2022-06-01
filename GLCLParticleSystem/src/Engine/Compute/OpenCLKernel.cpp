@@ -32,8 +32,7 @@ namespace Engine
 			KernelArg& arg = *m_Args[i];
 			
 			status = clSetKernelArg(m_KernelID, i, arg.Size, arg.Type == KernelArgType::Global ? &arg.Data : NULL);
-			if (status != CL_SUCCESS)
-				LOG_ERROR("Failure to set clSetKernelArg for Arg: {} at {}.", arg.Name, i);
+			OpenCLContext::PrintCLError(status, "Failure to set clSetKernelArg for Arg");
 		}
 
 		OpenCLContext::Wait(m_Program->GetCommandQueueID());

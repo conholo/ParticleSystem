@@ -7,12 +7,21 @@
 #include "Engine/Compute/OpenCLProgram.h"
 #include "Engine/Renderer/Camera.h"
 
+#include <OpenCL/cl.h>
+
 namespace Engine
 {
+	struct cl_simulation_bounds
+	{
+		cl_float4 Center;
+		cl_float4 MinExtent;
+		cl_float4 MaxExtent;
+	};
+
 	struct ParticleSystemProperties
 	{
 		ParticleSystemProperties(
-			size_t particleCount = 100000,
+			size_t particleCount = 1024 * 1024,
 			const SimulationBounds& bounds = SimulationBounds(),
 			const glm::vec3& minVelocity = glm::vec3(-1.0f),
 			const glm::vec3& maxVelocity = glm::vec3(1.0f),
@@ -55,12 +64,14 @@ namespace Engine
 		void Initialize(const std::string& clKernelFilePath, const std::string& shaderFilePath);
 
 	private:
+		cl_simulation_bounds* m_CLBoundsPtr;
 		Shader* m_ParticlePointShader;
 		VertexArray* m_VAO;
 		OpenCLProgram* m_ParticleProgram;
 		OpenCLBuffer* m_CLVelocityBuffer;
 		OpenCLBuffer* m_CLPositionBuffer;
 		OpenCLBuffer* m_CLColorBuffer;
+		OpenCLBuffer* m_SimulationBoundsBuffer;
 		OpenCLKernel* m_ParticleSimulationKernel;
 
 		glm::ivec3 m_GlobalWorkSize;

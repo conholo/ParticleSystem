@@ -48,27 +48,42 @@ namespace Engine
 		m_IndexBuffer = indexBuffer;
 	}
 
-	void VertexArray::EnableVertexAttributes(VertexBuffer* vertexBuffer)
+	void VertexArray::AddVertexArray(VertexBuffer* vertexBuffer)
+	{
+		m_VBOs.push_back(vertexBuffer);
+		glBindVertexArray(m_ID);
+	}
+
+	void VertexArray::EnableVertexAttributes()
 	{
 		glBindVertexArray(m_ID);
-		vertexBuffer->Bind();
-
-		const auto& layout = vertexBuffer->GetLayout();
-
 		uint32_t index = 0;
-		for (const auto& element : layout)
+		uint32_t currentOffset = 0;
+
+		for (int i = 0; i < m_VBOs.size(); i++)
 		{
-			glEnableVertexAttribArray(index);
-			glVertexAttribPointer(
-				index,
-				element.GetComponentCount(),
-				GLEnumFromShaderDataType(element.Type),
-				element.Normalized ? GL_TRUE : GL_FALSE,
-				layout.GetStride(),
-				(const void*)element.Offset
-			);
-			index++;
+			VertexBuffer* vbo = m_VBOs[i];
+			vbo->Bind();
+
+			const auto& layout = vbo->GetLayout();
+
+			for (const auto& element : layout)
+			{
+				glEnableVertexAttribArray(index);
+				glVertexAttribPointer(
+					index,
+					element.GetComponentCount(),
+					GLEnumFromShaderDataType(element.Type),
+					element.Normalized ? GL_TRUE : GL_FALSE,
+					layout.GetStride(),
+					(void*)currentOffset
+				);
+
+				currentOffset += layout.GetStride();
+				index++;
+			}
 		}
 	}
+
 }
 
