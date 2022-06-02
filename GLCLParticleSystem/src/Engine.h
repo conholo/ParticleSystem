@@ -24,3 +24,4 @@
 
 #include "Particle/ParticleSystem.h"
 #include "Particle/SimulationBounds.h"
+#include "Particle/SimulationWorld.h"

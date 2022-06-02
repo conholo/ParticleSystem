@@ -6,6 +6,7 @@
 #include "Engine/Time.h"
 #include "Engine/Renderer/RenderCommand.h"
 #include "Engine/Random.h"
+#include "Engine/Input.h"
 
 #include <GLFW/glfw3.h>
 
@@ -36,12 +37,13 @@ namespace Engine
 		RenderCommand::Initialize();
 		RenderCommand::SetViewport(Window::GetWidth(), Window::GetHeight());
 		OpenCLContext::Initialize();
+		OpenCLContext::ToggleDebug(false);
 
 		ParticleSystemProperties properties;
 		m_PS = new Engine::ParticleSystem(properties, "resources/cl/particle_sim.cl", "resources/shaders/particle_shader.shader");
 
-		m_Camera.SetPosition({ 0.0f, 0.0f, 5.0f });
 		m_Camera.SetPerspective();
+		m_Camera.SetPosition({ 0.0f, 0.0f, 2.0f });
 	}
 
 	Application::~Application()
@@ -54,6 +56,9 @@ namespace Engine
 	{
 		while (s_Instance->m_IsRunning)
 		{
+			if (s_Instance->m_PS->IsFinished())
+				break;
+
 			Time::Tick();
 			s_Instance->m_Camera.Update(Time::DeltaTime());
 			RenderCommand::Clear(true, true);
@@ -64,6 +69,9 @@ namespace Engine
 
 			Window::Update();
 		}
+
+		float performance = s_Instance->m_PS->GetProperties().ParticleCount / (s_Instance->m_PS->GetAverageFrameTime());
+		LOG_INFO("{}, {}, {}", s_Instance->m_PS->GetProperties().ParticleCount, (float)s_Instance->m_PS->GetAverageFrameTime(), performance / 1000.0f);
 	}
 
 	void Application::OnEvent(Event& event)
@@ -72,6 +80,7 @@ namespace Engine
 
 		dispatcher.Dispatch<WindowClosedEvent>(BIND_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizedEvent>(BIND_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<KeyPressedEvent>(BIND_FN(Application::OnKeyPressed));
 		m_Camera.OnEvent(event);
 	}
 
@@ -85,5 +94,19 @@ namespace Engine
 	{
 		RenderCommand::SetViewport(windowResizeEvent.GetWidth(), windowResizeEvent.GetHeight());
 		return false;
+	}
+
+	bool Application::OnKeyPressed(KeyPressedEvent& keyPressedEvent)
+	{
+		if (keyPressedEvent.GetKeyCode() == Key::Space)
+			m_PS->ApplyPulse();
+		else if (keyPressedEvent.GetKeyCode() == Key::Tab)
+			m_PS->ToggleRenderSpheres();
+		else if (keyPressedEvent.GetKeyCode() == Key::LeftShift)
+			m_PS->Start();
+		else if (keyPressedEvent.GetKeyCode() == Key::RightShift)
+			m_PS->Reset();
+
+		return true;
 	}
 }

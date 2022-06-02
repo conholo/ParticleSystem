@@ -7,16 +7,16 @@ namespace Engine
 	class VertexBuffer
 	{
 	public:
-		VertexBuffer(uint32_t size);
-		VertexBuffer(float* vertices, uint32_t size);
+		VertexBuffer(size_t size);
+		VertexBuffer(float* vertices, size_t size);
 
 		~VertexBuffer();
 
-		void* MapBuffer(uint32_t size, BufferHint hint);
+		void* MapBuffer(size_t size, BufferHint hint);
 		void UnmapBuffer();
-		void SetData(const void* data, uint32_t size);
-		void Resize(uint32_t size);
-		void ResizeAndSetData(const void* data, uint32_t size);
+		void SetData(const void* data, size_t size);
+		void Resize(size_t size);
+		void ResizeAndSetData(const void* data, size_t size);
 
 		void Bind() const;
 		void Unbind() const;

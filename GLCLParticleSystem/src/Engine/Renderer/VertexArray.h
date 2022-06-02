@@ -18,7 +18,7 @@ namespace Engine
 		void ClearIndexBuffer() { m_IndexBuffer = nullptr; }
 		void SetIndexBuffer(IndexBuffer* indexBuffer);
 		IndexBuffer* GetIndexBuffer() const { return m_IndexBuffer; }
-		void AddVertexArray(VertexBuffer* vertexBuffer);
+		void AddVertexBuffer(VertexBuffer* vertexBuffer);
 		void EnableVertexAttributes();
 
 	private:

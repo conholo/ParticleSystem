@@ -34,7 +34,10 @@ namespace Engine
 
 		cl_program GetID() const { return m_ID; }
 
+		double GetSumTime() const { return m_SumTimeMS; }
+
 	private:
+		double m_SumTimeMS = 0.0;
 		std::unordered_map<std::string, OpenCLKernel*> m_Kernels;
 		std::unordered_map<std::string, OpenCLBuffer*> m_Buffers;
 		cl_command_queue m_CommandQueue;

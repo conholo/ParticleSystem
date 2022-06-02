@@ -5,6 +5,63 @@
 
 namespace Engine
 {
+	Mesh* MeshFactory::Create(PrimitiveType type)
+	{
+		switch (type)
+		{
+		case PrimitiveType::Box: return Box();
+		case PrimitiveType::Sphere: return Sphere(1.0f);
+		}
+
+		return nullptr;
+	}
+
+	Mesh* MeshFactory::Box()
+	{
+		std::vector<uint32_t> indices =
+		{
+			// Back Face
+			0, 1, 2,
+			2, 3, 0,
+
+			// Left Face
+			4, 1, 0,
+			0, 5, 4,
+
+			// Right Face
+			2, 6, 7,
+			7, 3, 2,
+
+			// Top Face
+			0, 3, 7,
+			7, 5, 0,
+
+			// Front Face
+			4, 5, 7,
+			7, 6, 4,
+
+			// Bottom Face
+			4, 6, 2,
+			2, 1, 4
+		};
+
+		std::vector<Vertex> vertices =
+		{
+			Vertex{ {-1.0f,  1.0f, -1.0f}, {0.0f, 0.0f, 0.0f} },
+			Vertex{ {-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 0.0f} },
+			Vertex{ { 1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 0.0f} },
+			Vertex{ { 1.0f,  1.0f, -1.0f}, {0.0f, 0.0f, 0.0f} },
+
+			Vertex{ {-1.0f, -1.0f,  1.0f}, {0.0f, 0.0f, 0.0f} },
+			Vertex{ {-1.0f,  1.0f,  1.0f}, {0.0f, 0.0f, 0.0f} },
+			Vertex{ { 1.0f, -1.0f,  1.0f}, {0.0f, 0.0f, 0.0f} },
+			Vertex{ { 1.0f,  1.0f,  1.0f}, {0.0f, 0.0f, 0.0f} }
+		};
+
+		return new Mesh(vertices, indices);
+	}
+
+
 	Mesh* MeshFactory::Sphere(float radius)
 	{
 		std::vector<Vertex> vertices;

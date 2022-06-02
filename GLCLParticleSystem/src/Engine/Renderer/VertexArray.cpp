@@ -48,21 +48,20 @@ namespace Engine
 		m_IndexBuffer = indexBuffer;
 	}
 
-	void VertexArray::AddVertexArray(VertexBuffer* vertexBuffer)
+	void VertexArray::AddVertexBuffer(VertexBuffer* vertexBuffer)
 	{
 		m_VBOs.push_back(vertexBuffer);
-		glBindVertexArray(m_ID);
 	}
 
 	void VertexArray::EnableVertexAttributes()
 	{
-		glBindVertexArray(m_ID);
 		uint32_t index = 0;
 		uint32_t currentOffset = 0;
 
 		for (int i = 0; i < m_VBOs.size(); i++)
 		{
 			VertexBuffer* vbo = m_VBOs[i];
+			glBindVertexArray(m_ID);
 			vbo->Bind();
 
 			const auto& layout = vbo->GetLayout();

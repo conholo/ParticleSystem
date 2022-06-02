@@ -14,6 +14,10 @@ namespace Engine
 		const glm::vec3& GetMinExtents() const { return m_MinExtents; }
 		const glm::vec3& GetMaxExtents() const { return m_MaxExtents; }
 
+		void SetCenter(const glm::vec3& newCenter) { m_Center = newCenter; }
+		void SetMinExtents(const glm::vec3& newMinExtents) { m_MinExtents = newMinExtents; }
+		void SetMaxExtents(const glm::vec3& newMaxExtents) { m_MaxExtents = newMaxExtents; }
+
 		void Move(const glm::vec3& newCenter);
 		void Resize(const glm::vec3& newSize);
 

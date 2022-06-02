@@ -2,6 +2,7 @@
 
 #include "Engine/Event/Event.h"
 #include "Engine/Event/WindowEvent.h"
+#include "Engine/Event/KeyEvent.h"
 #include "Particle/ParticleSystem.h"
 #include "Engine/Renderer/Camera.h"
 
@@ -26,6 +27,7 @@ namespace Engine
 	private:
 		bool OnWindowClose(WindowClosedEvent& windowCloseEvent);
 		bool OnWindowResize(WindowResizedEvent& windowResizeEvent);
+		bool OnKeyPressed(KeyPressedEvent& keyPressedEvent);
 
 	private:
 		static Application* s_Instance;

@@ -101,8 +101,7 @@ namespace Engine
 		auto end = std::chrono::high_resolution_clock::now();
 		elapsed = end - start;
 
-		if (OpenCLContext::GetShouldLogDebug())
-			LOG_INFO("KERNEL: '{}' Execution Time: {}", kernelName, elapsed.count());
+		m_SumTimeMS += elapsed.count();
 	}
 
 	OpenCLBuffer* OpenCLProgram::GetBuffer(const std::string& bufferName)

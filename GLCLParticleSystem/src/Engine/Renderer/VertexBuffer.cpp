@@ -17,7 +17,7 @@ namespace Engine
 		return -1;
 	}
 
-	VertexBuffer::VertexBuffer(uint32_t size)
+	VertexBuffer::VertexBuffer(size_t size)
 		:m_Size(size)
 	{
 		glCreateBuffers(1, &m_ID);
@@ -25,7 +25,7 @@ namespace Engine
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 	}
 
-	VertexBuffer::VertexBuffer(float* vertices, uint32_t size)
+	VertexBuffer::VertexBuffer(float* vertices, size_t size)
 		:m_Size(size)
 	{
 		glCreateBuffers(1, &m_ID);
@@ -38,7 +38,7 @@ namespace Engine
 		glDeleteBuffers(1, &m_ID);
 	}
 
-	void* VertexBuffer::MapBuffer(uint32_t size, BufferHint hint)
+	void* VertexBuffer::MapBuffer(size_t size, BufferHint hint)
 	{
 		if (m_Size != size)
 		{
@@ -58,19 +58,19 @@ namespace Engine
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void VertexBuffer::SetData(const void* data, uint32_t size)
+	void VertexBuffer::SetData(const void* data, size_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_ID);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 	}
 
-	void VertexBuffer::Resize(uint32_t size)
+	void VertexBuffer::Resize(size_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_ID);
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 	}
 
-	void VertexBuffer::ResizeAndSetData(const void* data, uint32_t size)
+	void VertexBuffer::ResizeAndSetData(const void* data, size_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_ID);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);

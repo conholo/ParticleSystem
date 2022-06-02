@@ -3,6 +3,8 @@
 
 namespace Engine
 {
+	enum class PrimitiveType { None = 0, Sphere, Box };
+
 	struct Vertex
 	{
 		glm::vec3 Position;
@@ -28,6 +30,10 @@ namespace Engine
 	class MeshFactory
 	{
 	public:
+
+		static Mesh* Create(PrimitiveType type);
+
 		static Mesh* Sphere(float radius);
+		static Mesh* Box();
 	};
 }
